@@ -1,0 +1,120 @@
+.home-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  gap: 20px;
+}
+
+.home-title {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+.home-subtitle {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--color-text-soft);
+  margin-top: 5px;
+}
+
+.home-class-select {
+  height: 44px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.home-start-btn {
+  height: 44px;
+  padding: 0 22px;
+  background: var(--color-accent);
+  color: var(--color-accent-on);
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.subject-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.subject-card {
+  background: #fff;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 11px;
+  padding: 20px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.subject-card-name {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 18px;
+}
+
+.subject-card-pct {
+  font-family: var(--font-serif);
+  font-size: 34px;
+}
+
+.subject-card-bar {
+  height: 5px;
+  background: var(--color-chip-alt);
+  border-radius: 3px;
+  margin-top: 12px;
+}
+
+.subject-card-bar-fill {
+  height: 5px;
+  border-radius: 3px;
+}
+
+.subject-card-meta {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--color-text-muted);
+  margin-top: 10px;
+}
+
+.nudge-banner {
+  background: var(--color-success-soft-bg);
+  border: 1px solid var(--color-success-soft-border);
+  border-radius: 11px;
+  padding: 18px 20px;
+  font-size: 13px;
+  font-weight: 300;
+  color: #5a6b52;
+  margin-bottom: 14px;
+}
+
+.recent-attempts {
+  background: #fff;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 11px;
+  padding: 4px 20px;
+}
+
+.recent-attempt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--color-divider);
+  font-size: 13px;
+}
+
+.recent-attempt-row:last-child {
+  border-bottom: none;
+}

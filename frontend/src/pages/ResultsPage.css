@@ -1,0 +1,111 @@
+.results-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-canvas);
+  padding: 24px;
+}
+
+.results-card {
+  width: min(520px, 100%);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 34px 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+.results-score-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: #fff;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.results-ring {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.results-ring-inner {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  color: var(--color-success-dark);
+}
+
+.results-headline {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.results-meta {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--color-text-soft);
+}
+
+.results-cta {
+  height: 52px;
+  background: var(--color-accent);
+  color: var(--color-accent-on);
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 14px;
+}
+
+.results-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--color-border-soft);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.results-option {
+  background: #fff;
+  padding: 15px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+}
+
+.results-option-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.results-option-sub {
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--color-text-muted);
+  margin-top: 3px;
+}

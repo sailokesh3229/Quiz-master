@@ -1,0 +1,129 @@
+.take-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-canvas);
+  padding: 24px;
+}
+
+.take-card {
+  width: min(940px, 100%);
+  min-height: 580px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.take-header {
+  height: 56px;
+  border-bottom: 1px solid var(--color-border-soft);
+  background: var(--color-surface-alt);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 16px;
+  font-size: 13px;
+}
+
+.take-header-meta {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--color-text-muted);
+}
+
+.take-header-spacer {
+  flex: 1;
+}
+
+.take-leave {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-accent-wrong);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.take-body {
+  flex: 1;
+  padding: 44px 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.take-footer {
+  height: 74px;
+  border-top: 1px solid var(--color-border-soft);
+  background: var(--color-surface-alt);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 20px;
+}
+
+.take-prev {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-soft);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.take-prev:disabled {
+  color: var(--color-text-disabled);
+  cursor: default;
+}
+
+.take-pills {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.take-pill {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-faint);
+  background: none;
+  cursor: pointer;
+}
+
+.take-pill.answered {
+  background: var(--color-success);
+  color: #fff;
+  border: none;
+}
+
+.take-pill.current {
+  background: var(--color-text);
+  color: var(--color-bg);
+  border: none;
+}
+
+.take-next {
+  height: 44px;
+  padding: 0 26px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  border: none;
+  border-radius: 9px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}

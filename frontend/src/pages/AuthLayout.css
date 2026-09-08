@@ -1,0 +1,28 @@
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-canvas);
+  padding: 32px;
+}
+
+.auth-brand {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.auth-brand-title {
+  font-family: var(--font-serif);
+  font-size: 36px;
+  line-height: 1.05;
+  margin-bottom: 9px;
+}
+
+.auth-brand-subtitle {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--color-text-soft);
+  max-width: 320px;
+  margin: 0 auto;
+}

@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+chroma_db/
+
+# Pipeline scratch/debug output — per-chapter JSON checkpoints, extracted
+# images, and run logs from building/debugging the parsing logic (PLAN.md
+# Section 1, Step G). Fully reproducible by re-running the ingestion
+# scripts against the source PDFs; not read by the deployed app (that's
+# chroma_db/, already ignored above). Kept out to avoid committing 30MB+
+# of stale debug artifacts.
+output/

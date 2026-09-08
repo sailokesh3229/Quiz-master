@@ -1,0 +1,104 @@
+/* Design tokens extracted from "Quiz Master - Final Screens.dc.html"
+   (see PLAN.md section 9). One fixed light theme — the design has no
+   dark-mode variant, so none is invented here. */
+:root {
+  --font-serif: "Instrument Serif", serif;
+  --font-sans: "Public Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --color-bg: #f7f5f1;
+  --color-canvas: #e9e5df;
+  --color-surface: #ffffff;
+  --color-surface-alt: #fbfaf8;
+  --color-chip: #f0ede7;
+  --color-chip-alt: #efebe4;
+
+  --color-border: #dad4cb;
+  --color-border-soft: #e2dcd3;
+  --color-divider: #e9e4dc;
+
+  --color-text: #26241f;
+  --color-text-soft: #6e6a62;
+  --color-text-muted: #8e8880;
+  --color-text-faint: #a29c93;
+  --color-text-disabled: #c4bdb2;
+
+  --color-sidebar-bg: #26241f;
+  --color-sidebar-text: #edeae4;
+  --color-sidebar-text-muted: #908a82;
+
+  --color-accent: #b4674a;
+  --color-accent-hover: #dfbba9;
+  --color-accent-on: #fcf9f5;
+  --color-accent-wrong: #b4523f;
+  --color-accent-wrong-text: #8e4a32;
+  --color-accent-soft-bg: #f3e2da;
+
+  --color-success: #6f8168;
+  --color-success-dark: #3f5138;
+  --color-success-darker: #2f3f29;
+  --color-success-soft-bg: #eaefe5;
+  --color-success-soft-border: #d3decb;
+  --color-success-link-border: #b9c4b0;
+
+  --radius-lg: 14px;
+  --radius-md: 10px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+
+  --shadow-card: 0 12px 32px -18px rgba(38, 36, 31, 0.22);
+  --shadow-chip: 0 8px 18px -8px rgba(38, 36, 31, 0.5);
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--color-success);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-success-link-border);
+}
+a:hover {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent-hover);
+}
+
+button {
+  font-family: inherit;
+}
+
+img {
+  max-width: 100%;
+}
+
+.label-mono {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.heading-serif {
+  font-family: var(--font-serif);
+  font-weight: 400;
+}

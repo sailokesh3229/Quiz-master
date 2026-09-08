@@ -1,0 +1,13 @@
+psycopg[binary]
+pgvector
+pydantic
+anthropic
+openai
+sentence-transformers
+pytest
+python-dotenv
+chromadb
+fastapi
+uvicorn[standard]
+PyJWT[crypto]
+httpx

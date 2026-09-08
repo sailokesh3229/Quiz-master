@@ -1,0 +1,30 @@
+# Root safety net — backend/, frontend/, and ingestion/ each have their
+# own .gitignore for their own build artifacts/venvs/secrets; this one
+# covers the top level and acts as defense-in-depth for env files
+# regardless of which directory they end up in.
+
+# Secrets — never commit an actual env file, only the checked-in .example
+# templates (backend/.env.example, frontend/.env.example).
+.env
+.env.*
+!.env.example
+
+# NCERT source PDFs (ingestion/PLAN.md section 0): hundreds of MB of
+# copyrighted textbook content, not project source — never push this to
+# GitHub (size and copyright, not a secrets concern, but just as much a
+# "don't touch GitHub with this" item).
+class 6/
+class 7/
+class 8/
+class 9/
+class 10/
+class 11/
+class 12/
+
+# Design reference material — not app source, not meant for version control.
+Design scope and variations.zip
+_design_extract/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
