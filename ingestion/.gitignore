@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 chroma_db/
+chroma_db.zip
 
 # Pipeline scratch/debug output — per-chapter JSON checkpoints, extracted
 # images, and run logs from building/debugging the parsing logic (PLAN.md
