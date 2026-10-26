@@ -17,10 +17,15 @@ load_dotenv()
 
 app = FastAPI(title="Quiz Master API")
 
-_frontend_origin = os.environ.get("FRONTEND_ORIGIN", "http://localhost:5173")
+# Comma-separated, so local dev and the deployed frontend can both be allowed.
+_frontend_origins = [
+    o.strip().rstrip("/")
+    for o in os.environ.get("FRONTEND_ORIGIN", "http://localhost:5173").split(",")
+    if o.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[_frontend_origin],
+    allow_origins=_frontend_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

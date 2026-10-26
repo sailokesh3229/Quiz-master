@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: quiz-master-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: bash build.sh
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.2
+      - key: FRONTEND_ORIGIN
+        value: https://quiz-master-gray-five.vercel.app,http://localhost:5173
+      # Set these in the Render dashboard (sync: false = not stored in git).
+      - key: DATABASE_URL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_WORKSPACE_ID
+        sync: false
+      - key: CLERK_ISSUER
+        sync: false
+      - key: CHROMA_ZIP_URL
+        sync: false
