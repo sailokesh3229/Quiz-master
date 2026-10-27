@@ -1,3 +1,6 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/interview-preparation", "destination": "/interview-preparation.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
