@@ -101,6 +101,7 @@ export interface CorrectPayload {
   options?: string[];
   correct_option_index?: number;
   answer?: string;
+  accepted_answers?: string[];
   left_items?: string[];
   right_items?: string[];
   pairs?: Record<string, string>;

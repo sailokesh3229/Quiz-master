@@ -1,12 +1,7 @@
 """Section 2 Step E / SPEC.md section 8: per-question grading rules.
 
-Resolves SPEC.md section 15's open question ("synonym-matching mechanism
-for fill-in-blank text answers... embedding similarity vs. a curated
-accepted-answers list vs. an LLM grading call — a PLAN.md-level decision,
-not yet made"): **embedding similarity**, via the same sentence-transformers
-model already in the stack (Section 1's all-MiniLM-L6-v2) — no extra LLM
-call needed for grading (keeps grading fast/cheap/deterministic-ish,
-consistent with existing infra), at a conservative similarity threshold.
+Accepted-answer matching precedes embedding similarity. Reviewed chemical
+aliases work for older bank payloads too, without regrading past attempts.
 """
 
 from __future__ import annotations
@@ -14,6 +9,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from typing import Any
+from app.answer_aliases import accepted_answers_for, chemical_identity, looks_like_formula, normalize_answer
 
 # Cosine similarity threshold for accepting a fill-in-blank text answer as
 # a synonym/close phrasing of the correct term (SPEC section 8). Starting
@@ -33,7 +29,7 @@ def _normalize_numeric(text: str) -> str | None:
 
 
 def _normalize_text(text: str) -> str:
-    return re.sub(r"\s+", " ", text.strip().lower())
+    return normalize_answer(text).casefold()
 
 
 def grade_mcq(payload: dict, user_answer: Any) -> bool:
@@ -47,14 +43,29 @@ def grade_fill_in_blank(payload: dict, user_answer: str, embed_model=None) -> bo
     - numeric answers: exact match after normalizing (strip commas/units), no tolerance.
     - text answers: accept a reasonable synonym/close phrasing, not only exact match.
     """
-    correct = payload["answer"]
+    correct = normalize_answer(payload["answer"])
+    user_answer = normalize_answer(str(user_answer))
+    if not user_answer:
+        return False
     correct_numeric = _normalize_numeric(correct)
     if correct_numeric is not None:
         user_numeric = _normalize_numeric(str(user_answer))
         return user_numeric is not None and user_numeric == correct_numeric
 
-    if _normalize_text(str(user_answer)) == _normalize_text(correct):
-        return True
+    identity = chemical_identity(correct)
+    if identity:
+        return chemical_identity(user_answer) == identity
+
+    alternatives = [correct, *accepted_answers_for(payload)]
+    for candidate in alternatives:
+        if looks_like_formula(candidate) or chemical_identity(candidate):
+            if normalize_answer(candidate) == user_answer:
+                return True
+        elif _normalize_text(user_answer) == _normalize_text(candidate):
+            return True
+    # A different formula is a different answer, even if its embedding is close.
+    if looks_like_formula(correct) or looks_like_formula(user_answer) or chemical_identity(user_answer):
+        return False
     if embed_model is None:
         return False
 

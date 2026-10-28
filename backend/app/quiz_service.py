@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 import psycopg
 
 from app.bank_lookup import lookup_bank
+from app.answer_aliases import accepted_answers_for
 from app.catalog import CatalogError, list_chapters, list_topics, validate_scope
 from app.config import DAILY_QUIZ_GENERATION_LIMIT
 from app.explanations import get_or_generate_explanation
@@ -323,6 +324,8 @@ def _build_solution_entry(
     """SPEC 8a: reopens the question read-only with the user's answer,
     green/red marking, and a source-grounded explanation below it."""
     explanation = get_or_generate_explanation(conn, question_id, provider, fallback)
+    if qtype == "fill_in_blank":
+        payload = {**payload, "accepted_answers": accepted_answers_for(payload)}
     entry = {
         "question_id": question_id, "question_type": qtype, "topic": topic, "text": text,
         "correct_payload": payload, "user_answer": user_answer, "is_correct": is_correct, "explanation": explanation,

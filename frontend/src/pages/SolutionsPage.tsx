@@ -35,9 +35,15 @@ function FillInBlankReview({ entry }: { entry: SolutionEntry }) {
       <div className={`solutions-option-row ${entry.is_correct ? "correct-answer" : "wrong-answer"}`}>
         <span>Your answer: {String(entry.user_answer)}</span>
       </div>
-      {!entry.is_correct && (
+      {entry.correct_payload.answer && (
         <div className="solutions-option-row correct-answer">
           <span>Correct answer: {entry.correct_payload.answer}</span>
+        </div>
+      )}
+      {!!entry.correct_payload.accepted_answers?.length && (
+        <div style={{ fontSize: 13, color: "var(--color-text-soft)", lineHeight: 1.6 }}>
+          Also accepted: {entry.correct_payload.accepted_answers.join(", ")}.
+          {!entry.is_correct && " Alternatives reflect current grading rules; saved scores are unchanged."}
         </div>
       )}
     </div>

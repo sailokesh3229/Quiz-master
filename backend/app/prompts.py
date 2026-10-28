@@ -20,6 +20,7 @@ import json
 import re
 
 from pydantic import BaseModel, Field, field_validator, model_validator
+from app.answer_aliases import accepted_answers_for, chemical_identity, normalize_answer
 
 
 class MCQPayload(BaseModel):
@@ -38,6 +39,27 @@ _WORD_TIMES_WORD_RE = re.compile(r"\b[a-zA-Z]+\s*×\s*[a-zA-Z]+\b|\b[a-zA-Z]+\s+
 class FillInBlankPayload(BaseModel):
     question: str
     answer: str
+    accepted_answers: list[str] = Field(default_factory=list, max_length=8)
+
+    @field_validator("accepted_answers")
+    @classmethod
+    def aliases_are_short_terms(cls, values: list[str]) -> list[str]:
+        cleaned = []
+        for value in values:
+            value = normalize_answer(value)
+            if not value or len(value) > 80:
+                raise ValueError("accepted answers must be nonempty short terms")
+            if chemical_identity(value) is None:
+                cls.answer_is_a_single_term(value)
+                cls.answer_is_not_a_symbolic_formula(value)
+            if value not in cleaned:
+                cleaned.append(value)
+        return cleaned
+
+    @model_validator(mode="after")
+    def add_reviewed_aliases(self) -> "FillInBlankPayload":
+        self.accepted_answers = accepted_answers_for(self.model_dump())
+        return self
 
     @field_validator("answer")
     @classmethod
@@ -57,6 +79,8 @@ class FillInBlankPayload(BaseModel):
         # as equivalent. Reject formula-shaped answers here so generation
         # retries into a numeric or bare-term answer instead (section 9's
         # existing retry path) rather than banking an ungradeable answer.
+        if chemical_identity(v) is not None:
+            return v
         if _ALGEBRAIC_OPERATOR_RE.search(v) or _WORD_TIMES_WORD_RE.search(v):
             raise ValueError(f"answer must not be a symbolic/algebraic expression: {v!r}")
         return v
@@ -133,13 +157,16 @@ The answer MUST be one of:
 - a single word or short term (e.g. "hydrogen", "photosynthesis", "carbon dioxide"), OR
 - a plain number, if the concept is computational.
 
-If the concept involves a formula or calculation (e.g. area, speed, percentage), do NOT ask the student to state the formula itself — instead, invent concrete numbers for the scenario and ask for the computed numeric result. For example, instead of "The area of a square is ____" (answer: "side x side" or "(side)^2" — both correct, but not gradable against each other), write "A square has a side of 6 cm. What is its area, in cm²?" (answer: "36"). The answer must NEVER be a symbolic/algebraic expression (no ×, ^, *, /, =, or parentheses) — always a bare term or a bare number.
+If the concept involves a formula or calculation (e.g. area, speed, percentage), do NOT ask the student to state the formula itself — instead, invent concrete numbers for the scenario and ask for the computed numeric result. For example, instead of "The area of a square is ____" (answer: "side x side" or "(side)^2" — both correct, but not gradable against each other), write "A square has a side of 6 cm. What is its area, in cm²?" (answer: "36"). The answer must NEVER be a symbolic/algebraic expression (no ×, ^, *, /, =, or algebraic parentheses) — always a bare term or a bare number. Reviewed chemical notation such as Ca(OH)2 is allowed as an equivalent chemical answer; prefer the full chemical name as the primary answer.
 
 Respond with ONLY a JSON object (no markdown, no explanation) matching this exact shape:
-{{"question": "... ____ ...", "answer": "..."}}
+{{"question": "... ____ ...", "answer": "...", "accepted_answers": ["equivalent short term, if any"]}}
 
 - The question must contain a blank (use "____").
-- The answer must be directly supported by the textbook content above."""
+- The answer must be directly supported by the textbook content above.
+- Include accepted_answers containing only genuine equivalent short answers supported by the source; use [] if none. Never include related-but-different concepts, guesses, or a different numeric value.
+- Use the unambiguous full chemical name as the primary answer where possible. Chemical formula alternatives must describe exactly the same substance. Preserve chemical capitalization and subscripts; CO and Co are different.
+- Do not rely on a particular wording when more than one term could reasonably fill the blank; rewrite an ambiguous question."""
 
 
 def build_matching_prompt(chunk_text: str, difficulty: str, style_example: str | None = None) -> str:
