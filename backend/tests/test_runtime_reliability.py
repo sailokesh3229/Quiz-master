@@ -1,7 +1,4 @@
 """Regression checks for request-time model loading and multiplied retries."""
-import sys
-from types import SimpleNamespace
-
 import pytest
 
 from app import deps, generation, llm_client
@@ -10,14 +7,13 @@ from app.scope_resolution import AllocationLine
 
 def test_model_loading_is_offline_and_cpu_only(monkeypatch):
     calls = []
-    monkeypatch.setitem(sys.modules, "torch", SimpleNamespace(set_num_threads=lambda n: calls.append(n)))
-    monkeypatch.setitem(sys.modules, "sentence_transformers", SimpleNamespace(
-        SentenceTransformer=lambda name, **kwargs: calls.append(kwargs) or object()))
+    from app import embeddings
+    monkeypatch.setattr(embeddings, "MiniLMEncoder", lambda: calls.append("local_model") or object())
     deps._embed_model.cache_clear()
     try:
         first = deps.get_embed_model()
         assert deps.get_embed_model() is first
-        assert calls == [1, {"local_files_only": True, "device": "cpu"}]
+        assert calls == ["local_model"]
     finally:
         deps._embed_model.cache_clear()
 

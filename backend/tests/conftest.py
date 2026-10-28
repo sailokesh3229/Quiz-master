@@ -10,9 +10,8 @@ from app.db import get_connection
 
 @pytest.fixture(scope="session")
 def embed_model():
-    from sentence_transformers import SentenceTransformer
-
-    return SentenceTransformer("all-MiniLM-L6-v2")
+    from app.deps import get_embed_model
+    return get_embed_model()
 
 
 @pytest.fixture(scope="session")

@@ -3,10 +3,12 @@ pgvector
 pydantic
 anthropic
 openai
-sentence-transformers
+onnxruntime
+tokenizers
+numpy
 pytest
 python-dotenv
-chromadb
+chromadb==1.5.9
 fastapi
 uvicorn[standard]
 PyJWT[crypto]

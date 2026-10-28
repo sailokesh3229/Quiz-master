@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
-# Render build step. Installs CPU-only torch first (the default PyPI torch
-# pulls ~2GB of CUDA libs Render can't use), then the rest, then fetches the
-# Chroma store, which is too large for git, from CHROMA_ZIP_URL.
+# Build the lightweight ONNX runtime and fetch the textbook corpus.
 set -euo pipefail
 
 pip install --upgrade pip
-pip install torch --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
 
 CHROMA_DIR="${CHROMA_DB_PATH:-../ingestion/chroma_db}"
@@ -21,4 +18,4 @@ else
 fi
 
 # Pre-download the embedding model so the first request isn't slow.
-python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2').save('.models/all-MiniLM-L6-v2')"
+python -m app.embeddings
