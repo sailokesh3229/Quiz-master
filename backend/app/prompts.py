@@ -63,6 +63,7 @@ class FillInBlankPayload(BaseModel):
 
 
 class MatchingPayload(BaseModel):
+    question: str = "Match each item on the left with the correct item on the right."
     left_items: list[str] = Field(min_length=3)
     right_items: list[str] = Field(min_length=3)
     pairs: dict[str, str]
@@ -151,7 +152,7 @@ TEXTBOOK CONTENT:
 {_style_reference_block(style_example)}
 
 Write exactly one matching question with 4-5 pairs grounded in this content (e.g. terms<->definitions, reactants<->products, events<->dates — whatever the content actually supports), at {difficulty} difficulty. Respond with ONLY a JSON object (no markdown, no explanation) matching this exact shape:
-{{"left_items": ["...", "...", "...", "..."], "right_items": ["...", "...", "...", "..."], "pairs": {{"left item 1": "matching right item", "left item 2": "matching right item", ...}}}}
+{{"question": "Match the terms with their descriptions.", "left_items": ["...", "...", "...", "..."], "right_items": ["...", "...", "...", "..."], "pairs": {{"left item 1": "matching right item", "left item 2": "matching right item", ...}}}}
 
 - Phrase each item (especially definitions) in your own words rather than copying a sentence verbatim from the passage — the pairing should test whether the student recognizes the concept, not whether they memorized the textbook's exact phrasing. Keep the subject's standard terms (names, formulas, dates) as-is.
 - left_items and right_items must be the same length (4 or 5).

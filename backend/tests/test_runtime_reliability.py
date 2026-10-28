@@ -45,3 +45,27 @@ def test_provider_failure_is_not_repeated_in_outer_rounds(monkeypatch):
     with pytest.raises(TimeoutError):
         generate(AllocationLine("topic", "easy", "MCQ", 2), 2)
     assert len(calls) == 2
+
+
+def test_matching_question_reaches_bank_intake(monkeypatch):
+    import json
+    import numpy as np
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(generation, "get_wording_style_example", lambda *args: None)
+    monkeypatch.setattr(generation, "get_grounding_chunks", lambda *args: [{"text": "source", "chunk_id": "one"}])
+    accepted = []
+
+    def intake(*args, **kwargs):
+        accepted.append(kwargs)
+        return SimpleNamespace(accepted=True, question_id="matching-one")
+
+    monkeypatch.setattr(generation, "intake_question", intake)
+    provider = SimpleNamespace(generate=lambda *args, **kwargs: json.dumps({
+        "left_items": ["a", "b", "c"], "right_items": ["x", "y", "z"],
+        "pairs": {"a": "x", "b": "y", "c": "z"}}))
+    model = SimpleNamespace(encode=lambda text: np.ones(384))
+    generate = generation.make_generate_fn(None, "10", "Science", "chapter", provider, None, model)
+    result = generate(AllocationLine("topic", "easy", "matching", 1), 1)
+    assert result[0]["question_id"] == "matching-one"
+    assert accepted[0]["text"].startswith("Match each item")
