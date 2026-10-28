@@ -30,14 +30,23 @@ async function request<T>(
   init?: RequestInit,
 ): Promise<T> {
   const token = await getToken();
-  const res = await fetch(`${BASE_URL}${path}`, {
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
     ...init,
+    signal: init?.signal ?? AbortSignal.timeout(120_000),
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(init?.headers ?? {}),
     },
-  });
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "TimeoutError") {
+      throw new ApiError(504, "The server took too long to respond. Please wait a moment before retrying.");
+    }
+    throw error;
+  }
   if (!res.ok) {
     let detail = res.statusText;
     try {

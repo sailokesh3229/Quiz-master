@@ -23,6 +23,7 @@ from app.api_schemas import (
     SubmitQuizOut,
 )
 from app.auth import get_current_user_id
+from app.diagnostics import stage
 from app.deps import get_db, get_embed_model, get_fallback_provider, get_primary_provider
 from app.quiz_service import (
     CreateQuizRequest,
@@ -67,7 +68,8 @@ def post_create_quiz(
         question_count=body.question_count, question_types=body.question_types, allow_partial=body.allow_partial,
     )
     try:
-        result = create_quiz(conn, request, primary, fallback, embed_model)
+        with stage("quiz.assemble"):
+            result = create_quiz(conn, request, primary, fallback, embed_model)
     except QuizCreationError as e:
         raise HTTPException(503, str(e)) from e
     except ValueError as e:

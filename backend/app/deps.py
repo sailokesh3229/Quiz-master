@@ -9,13 +9,20 @@ tests (tests/conftest.py's db_conn fixture, which only ever rolls back)."""
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
+from threading import Lock
+import os
 
 from app.db import get_connection
 from app.llm_client import Provider, default_fallback, default_primary
+from app.diagnostics import stage
+
+_model_lock = Lock()
 
 
 def get_db():
-    conn = get_connection()
+    with stage("database.connect"):
+        conn = get_connection()
     try:
         yield conn
         conn.commit()
@@ -28,13 +35,26 @@ def get_db():
 
 @lru_cache(maxsize=1)
 def _embed_model():
-    from sentence_transformers import SentenceTransformer
+    with stage("embedding.import"):
+        # Prevent optional frameworks and excessive CPU thread pools on small hosts.
+        os.environ.setdefault("USE_TF", "0")
+        os.environ.setdefault("USE_FLAX", "0")
+        os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+        import torch
+        torch.set_num_threads(1)
+        from sentence_transformers import SentenceTransformer
 
-    return SentenceTransformer("all-MiniLM-L6-v2")
+    model_path = Path(__file__).resolve().parent.parent / ".models" / "all-MiniLM-L6-v2"
+    with stage("embedding.load"):
+        # Render's build saves this complete model. Runtime needs no HF requests.
+        return SentenceTransformer(str(model_path) if model_path.exists() else "all-MiniLM-L6-v2",
+                                   local_files_only=True, device="cpu")
 
 
 def get_embed_model():
-    return _embed_model()
+    # lru_cache alone can initialize twice when two requests arrive together.
+    with _model_lock:
+        return _embed_model()
 
 
 @lru_cache(maxsize=1)
@@ -43,7 +63,7 @@ def _primary_provider() -> Provider:
 
 
 @lru_cache(maxsize=1)
-def _fallback_provider() -> Provider:
+def _fallback_provider() -> Provider | None:
     return default_fallback()
 
 
@@ -51,5 +71,5 @@ def get_primary_provider() -> Provider:
     return _primary_provider()
 
 
-def get_fallback_provider() -> Provider:
+def get_fallback_provider() -> Provider | None:
     return _fallback_provider()

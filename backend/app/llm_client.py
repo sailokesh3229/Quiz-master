@@ -21,11 +21,13 @@ import anthropic
 import openai
 
 from app.config import load_dotenv
+from app.diagnostics import stage, logger
 
 load_dotenv()
 
 PRIMARY_MODEL = "gpt-4o-mini"
 FALLBACK_MODEL = "claude-sonnet-5"
+REQUEST_TIMEOUT = float(os.environ.get("LLM_REQUEST_TIMEOUT_SECONDS", "20"))
 
 
 class Provider(Protocol):
@@ -38,14 +40,15 @@ class OpenAIProvider:
     api_key: str | None = None
 
     def __post_init__(self) -> None:
-        self._client = openai.OpenAI(api_key=self.api_key)
+        self._client = openai.OpenAI(api_key=self.api_key, timeout=REQUEST_TIMEOUT, max_retries=0)
 
     def generate(self, prompt: str, *, max_tokens: int = 1024) -> str:
-        response = self._client.chat.completions.create(
-            model=self.model,
-            max_tokens=max_tokens,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        with stage("llm.openai"):
+            response = self._client.chat.completions.create(
+                model=self.model,
+                max_tokens=max_tokens,
+                messages=[{"role": "user", "content": prompt}],
+            )
         return response.choices[0].message.content
 
 
@@ -57,7 +60,8 @@ class AnthropicProvider:
     def __post_init__(self) -> None:
         workspace_id = os.environ.get("ANTHROPIC_WORKSPACE_ID")
         default_headers = {"anthropic-workspace-id": workspace_id} if workspace_id else None
-        self._client = anthropic.Anthropic(api_key=self.api_key, default_headers=default_headers)
+        self._client = anthropic.Anthropic(api_key=self.api_key, default_headers=default_headers,
+                                           timeout=REQUEST_TIMEOUT, max_retries=0)
 
     def generate(self, prompt: str, *, max_tokens: int = 1024) -> str:
         response = self._client.messages.create(
@@ -72,8 +76,8 @@ def default_primary() -> Provider:
     return OpenAIProvider()
 
 
-def default_fallback() -> Provider:
-    return AnthropicProvider()
+def default_fallback() -> Provider | None:
+    return AnthropicProvider() if os.environ.get("ANTHROPIC_API_KEY") else None
 
 
 class ReliabilityError(RuntimeError):
@@ -101,6 +105,8 @@ def generate_with_reliability(
             return primary.generate(prompt, max_tokens=max_tokens)
         except Exception as e:  # noqa: BLE001 — deliberately broad: any provider failure triggers retry/fallback
             last_error = e
+            logger.warning("pipeline stage=llm.primary state=failed attempt=%d error_type=%s status=%s",
+                           attempt + 1, type(e).__name__, getattr(e, "status_code", None))
             if attempt < max_retries:
                 sleep(backoff_seconds * (2**attempt))
 
@@ -109,6 +115,8 @@ def generate_with_reliability(
             return fallback.generate(prompt, max_tokens=max_tokens)
         except Exception as e:  # noqa: BLE001
             last_error = e
+            logger.warning("pipeline stage=llm.fallback state=failed error_type=%s status=%s",
+                           type(e).__name__, getattr(e, "status_code", None))
 
     raise ReliabilityError(
         f"primary provider failed after {max_retries + 1} attempts"

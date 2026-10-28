@@ -17,4 +17,4 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres@localhost:5
 
 
 def get_connection() -> psycopg.Connection:
-    return psycopg.connect(DATABASE_URL, row_factory=dict_row)
+    return psycopg.connect(DATABASE_URL, row_factory=dict_row, connect_timeout=10)

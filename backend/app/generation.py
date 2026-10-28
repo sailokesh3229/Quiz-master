@@ -33,6 +33,7 @@ from app.dedup import intake_question
 from app.llm_client import Provider, generate_with_reliability
 from app.prompts import PROMPT_BUILDERS, SchemaValidationError, parse_and_validate
 from app.scope_resolution import AllocationLine
+from app.diagnostics import stage
 
 _DEFAULT_CHROMA_PATH = Path(__file__).resolve().parent.parent.parent / "ingestion" / "chroma_db"
 CHROMA_PATH = Path(os.environ.get("CHROMA_DB_PATH", str(_DEFAULT_CHROMA_PATH)))
@@ -111,10 +112,12 @@ def make_generate_fn(
     # Fetched once per quiz (not per question/chunk) — it's the same
     # chapter-level style example for every question generated in this
     # call, not something that varies per sub-unit or per round.
-    style_example = get_wording_style_example(conn, class_, subject, chapter)
+    with stage("textbook.style_reference"):
+        style_example = get_wording_style_example(conn, class_, subject, chapter)
 
     def generate_fn(line: AllocationLine, count: int) -> list[dict]:
-        chunks = get_grounding_chunks(class_, subject, line.sub_unit)
+        with stage("textbook.retrieve"):
+            chunks = get_grounding_chunks(class_, subject, line.sub_unit)
         if not chunks:
             raise RuntimeError(f"no Section 1 chunks found for {class_}/{subject}/{line.sub_unit}")
 
@@ -141,6 +144,11 @@ def make_generate_fn(
                 ),
             )
 
+            if outcome.errors:
+                # Provider errors were already retried. Repeating whole rounds
+                # here multiplies timeouts and hides the original failure.
+                raise outcome.errors[min(outcome.errors)]
+
             # DB writes happen sequentially, back on the caller's connection.
             for i in sorted(outcome.results.keys()):
                 result_data = outcome.results[i]
@@ -148,7 +156,8 @@ def make_generate_fn(
                     continue
                 payload = result_data["payload"]
                 question_text = payload.question
-                embedding = embed_model.encode(question_text).tolist()
+                with stage("question.embed"):
+                    embedding = embed_model.encode(question_text).tolist()
                 intake_result = intake_question(
                     conn,
                     class_=class_,

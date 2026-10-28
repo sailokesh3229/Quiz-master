@@ -5,6 +5,8 @@ proves DB connectivity end-to-end, and every router."""
 from __future__ import annotations
 
 import os
+from time import perf_counter
+from uuid import uuid4
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,10 +14,31 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import load_dotenv
 from app.db import get_connection
 from app.routers import catalog, performance, profile, quiz
+from app.diagnostics import logger
 
 load_dotenv()
 
 app = FastAPI(title="Quiz Master API")
+
+
+@app.middleware("http")
+async def trace_quiz_requests(request, call_next):
+    if not request.url.path.startswith("/api/quiz/"):
+        return await call_next(request)
+    request_id = uuid4().hex[:12]
+    started = perf_counter()
+    logger.info("quiz_request id=%s method=%s path=%s state=start",
+                request_id, request.method, request.url.path)
+    try:
+        response = await call_next(request)
+    except Exception as exc:
+        logger.error("quiz_request id=%s state=failed seconds=%.2f error_type=%s",
+                     request_id, perf_counter() - started, type(exc).__name__)
+        raise
+    logger.info("quiz_request id=%s state=done status=%d seconds=%.2f",
+                request_id, response.status_code, perf_counter() - started)
+    response.headers["X-Request-ID"] = request_id
+    return response
 
 # Comma-separated, so local dev and the deployed frontend can both be allowed.
 _frontend_origins = [
