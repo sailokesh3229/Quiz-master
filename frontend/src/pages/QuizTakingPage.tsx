@@ -108,6 +108,9 @@ export default function QuizTakingPage() {
             Leave
           </button>
         </div>
+        <div className="take-progress" role="progressbar" aria-label="Quiz progress" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={index + 1}>
+          <span style={{ width: `${((index + 1) / questions.length) * 100}%` }} />
+        </div>
 
         <div className="take-body">
           <div className="q-eyebrow-row">
@@ -149,6 +152,8 @@ export default function QuizTakingPage() {
               <button
                 key={q.question_id}
                 className={`take-pill ${i === index ? "current" : isAnswered(answers[q.question_id], q.question_type) ? "answered" : ""}`}
+                aria-label={`Question ${i + 1}${isAnswered(answers[q.question_id], q.question_type) ? ", answered" : ""}`}
+                aria-current={i === index ? "step" : undefined}
                 onClick={() => setIndex(i)}
               >
                 {i + 1}

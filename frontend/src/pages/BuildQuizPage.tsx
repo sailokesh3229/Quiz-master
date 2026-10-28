@@ -277,6 +277,9 @@ export default function BuildQuizPage() {
           <div className="wizard-step-label">
             STEP {stepIndex + 1} OF {steps.length}
           </div>
+          <div className="wizard-step-progress" role="progressbar" aria-label="Quiz setup progress" aria-valuemin={0} aria-valuemax={steps.length} aria-valuenow={stepIndex + 1}>
+            <span style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }} />
+          </div>
 
           {currentStep === "class" && (
             <>
