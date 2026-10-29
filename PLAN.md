@@ -1146,6 +1146,8 @@ schema validation alone is not a factual equivalence guarantee.
 ## 13. Matching generation and latency implementation — 2026-10-29
 
 - Replace matching stem-only hashes with versioned canonical mapping hashes.
+  Reject repeated left/right labels, filter malformed legacy bank rows, and
+  remount the matching interaction per question to prevent stale drag state.
   Preserve formula case, ignore item order, and compare legacy payloads before
   intake. Embed the actual mapping to avoid generic-stem clustering.
 - Bulk-read solution rows and cached explanations; parallelize missing provider

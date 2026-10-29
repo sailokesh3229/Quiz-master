@@ -136,6 +136,7 @@ export default function QuizTakingPage() {
           )}
           {question.question_type === "matching" && (
             <MatchingQuestion
+              key={question.question_id}
               question={question}
               value={answers[question.question_id] as MatchingAnswer | undefined}
               onChange={setAnswer}

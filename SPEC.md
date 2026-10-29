@@ -551,6 +551,9 @@ chemical case and ignoring display order/instruction wording. Different pair
 sets with a generic instruction are distinct questions. Embeddings include the
 mapping, not only the generic instruction. Legacy questions remain readable and
 their mappings are checked during intake without rewriting historical records.
+Matching labels must be unique on both sides, so each drag target has a single
+identity. Reject repeated labels at generation time and exclude malformed
+legacy sets from bank selection. Reset drag state when the question changes.
 
 Solutions read the explanation cache in one batch, generate only missing
 explanations concurrently, and persist them on the request thread. Provider

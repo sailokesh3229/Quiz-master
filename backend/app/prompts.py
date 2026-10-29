@@ -94,6 +94,8 @@ class MatchingPayload(BaseModel):
 
     @model_validator(mode="after")
     def pairs_form_a_bijection_with_items(self) -> "MatchingPayload":
+        if len(set(self.left_items)) != len(self.left_items) or len(set(self.right_items)) != len(self.right_items):
+            raise ValueError("matching items must be unique on each side")
         if len(self.left_items) != len(self.right_items):
             raise ValueError("left_items and right_items must be the same length")
         if set(self.pairs.keys()) != set(self.left_items):
@@ -183,6 +185,7 @@ Write exactly one matching question with 4-5 pairs grounded in this content (e.g
 
 - Phrase each item (especially definitions) in your own words rather than copying a sentence verbatim from the passage — the pairing should test whether the student recognizes the concept, not whether they memorized the textbook's exact phrasing. Keep the subject's standard terms (names, formulas, dates) as-is.
 - left_items and right_items must be the same length (4 or 5).
+- Every item on each side must be unique; never repeat labels such as (s) or (g). Use distinct descriptions instead.
 - pairs must map every left item to exactly one right item, using every right item exactly once.
 - Every pair must be directly supported by the textbook content above."""
 

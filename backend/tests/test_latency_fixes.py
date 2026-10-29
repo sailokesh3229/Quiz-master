@@ -5,6 +5,13 @@ from types import SimpleNamespace
 import pytest
 
 from app import dedup, explanations
+from app.prompts import MatchingPayload
+
+
+def test_repeated_matching_labels_are_rejected():
+    with pytest.raises(ValueError, match="unique"):
+        MatchingPayload(left_items=["iron", "water", "hydrogen"], right_items=["solid", "gas", "gas"],
+                        pairs={"iron": "solid", "water": "gas", "hydrogen": "gas"})
 
 
 def test_matching_identity_uses_pairs_and_ignores_display_order():

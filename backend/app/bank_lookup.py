@@ -58,6 +58,12 @@ _QUERY = """
           AND q.topic = %(topic)s
           AND q.difficulty = %(difficulty)s
           AND q.type = %(question_type)s
+          AND (q.type <> 'matching' OR (
+              jsonb_array_length(q.payload->'left_items') =
+                  (SELECT COUNT(DISTINCT value) FROM jsonb_array_elements_text(q.payload->'left_items'))
+              AND jsonb_array_length(q.payload->'right_items') =
+                  (SELECT COUNT(DISTINCT value) FROM jsonb_array_elements_text(q.payload->'right_items'))
+          ))
           AND NOT EXISTS (
               SELECT 1 FROM seen_questions sq
               WHERE sq.user_id = %(user_id)s AND sq.question_id = q.question_id
