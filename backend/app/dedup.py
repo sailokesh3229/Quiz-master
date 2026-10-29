@@ -12,6 +12,7 @@ off the request path, per PLAN.md section 2's latency rules) — serving
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import uuid
 from dataclasses import dataclass
@@ -62,6 +63,23 @@ def normalize_text(text: str) -> str:
 
 def compute_text_hash(text: str) -> str:
     return hashlib.sha256(normalize_text(text).encode("utf-8")).hexdigest()
+
+
+def question_identity_text(question_type: str, text: str, payload: dict) -> str:
+    """Matching identity is its mapping, independent of instruction/display order.
+
+    Preserve case: CO and Co are different scientific answers.
+    """
+    if question_type != "matching":
+        return text
+    pairs = sorted((re.sub(r"\s+", " ", k.strip()), re.sub(r"\s+", " ", v.strip()))
+                   for k, v in payload["pairs"].items())
+    return json.dumps(pairs, ensure_ascii=False, separators=(",", ":"))
+
+
+def matching_hash(payload: dict) -> str:
+    content = question_identity_text("matching", "", payload)
+    return "matching-v2:" + hashlib.sha256(content.encode("utf-8")).hexdigest()
 
 
 @dataclass
@@ -215,8 +233,18 @@ def intake_question(
     """Full write-time intake pipeline (section 5): exact-hash check, then
     embedding clustering (within-batch aware if batch_so_far given), then
     insert. Returns accepted=False (no insert) on an exact duplicate."""
-    text_hash = compute_text_hash(text)
+    text_hash = matching_hash(payload) if question_type == "matching" else compute_text_hash(text)
     dup_id = check_exact_duplicate(conn, class_, subject, chapter, topic, text_hash)
+    if not dup_id and question_type == "matching":
+        # Recognize legacy rows without rewriting historical question data.
+        with conn.cursor() as cur:
+            cur.execute("SELECT question_id, payload FROM questions WHERE class=%s AND subject=%s "
+                        "AND chapter=%s AND topic=%s AND type='matching' AND text_hash NOT LIKE 'matching-v2:%%'",
+                        (class_, subject, chapter, topic))
+            for row in cur.fetchall():
+                if row["payload"].get("pairs") and matching_hash(row["payload"]) == text_hash:
+                    dup_id = str(row["question_id"])
+                    break
     if dup_id:
         return IntakeResult(accepted=False, reason="exact_duplicate", duplicate_of=dup_id)
 

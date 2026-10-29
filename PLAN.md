@@ -1109,6 +1109,7 @@ fully closed out, but not a blocker for normal use.
 
 ## 12. Accepted fill-in-the-blank answers (2026-10-29)
 
+
 Trigger: a live student answered `mgo` for a question keyed to magnesium
 oxide and was incorrectly rejected by the embedding-only fallback.
 
@@ -1140,3 +1141,23 @@ aliases, old payload compatibility, and answer-field stripping. Run the
 backend grading/prompt regressions plus frontend build/lint before deployment.
 Generated ordinary-text aliases remain best-effort source-grounded data;
 schema validation alone is not a factual equivalence guarantee.
+
+
+## 13. Matching generation and latency implementation — 2026-10-29
+
+- Replace matching stem-only hashes with versioned canonical mapping hashes.
+  Preserve formula case, ignore item order, and compare legacy payloads before
+  intake. Embed the actual mapping to avoid generic-stem clustering.
+- Bulk-read solution rows and cached explanations; parallelize missing provider
+  calls with LLM_MAX_WORKERS (default 6), then persist on the caller thread.
+  Reuse source/style retrieval within a batch and cache immutable source chunks.
+- Bound existing generation concurrency with the same setting. Cache subject,
+  chapter and topic metadata; process restart invalidates corpus caches.
+- Verify legacy duplicate compatibility, different mappings with identical
+  instructions, formula case, cache-only requests, failure atomicity, and
+  bounded concurrency at 5/15/25 questions. Run existing grading/generation
+  regressions, deploy, and verify matching creation through the live app.
+- Remaining work: cross-allocation scheduling, database pooling, durable
+  pre-generation, scientific alias/content review and detailed server timings.
+  These are not claimed as implemented by this change.
+

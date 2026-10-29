@@ -544,6 +544,23 @@ scanning all raw answer history on every read. Instead:
 
 ## 15. Open questions to resolve before planning
 
+### 2026-10-29 matching and latency correction
+
+Matching exact identity uses the complete left-to-right mapping, preserving
+chemical case and ignoring display order/instruction wording. Different pair
+sets with a generic instruction are distinct questions. Embeddings include the
+mapping, not only the generic instruction. Legacy questions remain readable and
+their mappings are checked during intake without rewriting historical records.
+
+Solutions read the explanation cache in one batch, generate only missing
+explanations concurrently, and persist them on the request thread. Provider
+concurrency is bounded by LLM_MAX_WORKERS (default 6) per batch. Larger quizzes
+therefore run in bounded waves; constant latency is not promised. Generation
+also uses this cap. Database connections are never shared with these workers.
+Catalog and source chunks are cached in bounded process-local caches; restart
+the service when replacing the textbook corpus. Provider failure still fails
+the request atomically, without committing a partial explanation batch.
+
 - **Usage limits:** a soft daily cap on quiz generations per user was
   proposed, purely to control LLM cost during early testing/development.
   Needs a concrete number before PLAN.md (suggested starting point: 10/day,

@@ -8,6 +8,7 @@ thread pool gets real concurrency here without needing an async client).
 from __future__ import annotations
 
 import logging
+import os
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
@@ -51,7 +52,7 @@ def generate_parallel(items: list[T], generate_fn: Callable[[T], object]) -> Par
     generate_with_reliability already having handled retries/fallback
     inside generate_fn)."""
     outcome = ParallelGenerationResult()
-    with ThreadPoolExecutor(max_workers=max(1, len(items))) as executor:
+    with ThreadPoolExecutor(max_workers=min(max(1, len(items)), max(1, int(os.getenv("LLM_MAX_WORKERS", "6"))))) as executor:
         future_to_index = {executor.submit(generate_fn, item): i for i, item in enumerate(items)}
         for future in as_completed(future_to_index):
             i = future_to_index[future]

@@ -19,7 +19,7 @@ from app.bank_lookup import lookup_bank
 from app.answer_aliases import accepted_answers_for
 from app.catalog import CatalogError, list_chapters, list_topics, validate_scope
 from app.config import DAILY_QUIZ_GENERATION_LIMIT
-from app.explanations import get_or_generate_explanation
+from app.explanations import get_or_generate_explanation, get_explanations
 from app.generation import make_generate_fn
 from app.grading import grade_answer, grade_matching
 from app.llm_client import Provider
@@ -320,10 +320,12 @@ def submit_quiz_request(conn: psycopg.Connection, request: SubmitQuizRequest, em
 def _build_solution_entry(
     conn: psycopg.Connection, question_id: str, qtype: str, topic: str, text: str, payload: dict,
     user_answer, is_correct: bool, provider: Provider, fallback: Provider | None, row_results: list[bool] | None,
+    explanation: str | None = None,
 ) -> dict:
     """SPEC 8a: reopens the question read-only with the user's answer,
     green/red marking, and a source-grounded explanation below it."""
-    explanation = get_or_generate_explanation(conn, question_id, provider, fallback)
+    if explanation is None:
+        explanation = get_or_generate_explanation(conn, question_id, provider, fallback)
     if qtype == "fill_in_blank":
         payload = {**payload, "accepted_answers": accepted_answers_for(payload)}
     entry = {
@@ -351,10 +353,12 @@ def solutions_from_attempt(conn: psycopg.Connection, attempt_id: str, provider: 
         rows = cur.fetchall()
     if not rows:
         raise ValueError(f"unknown attempt_id: {attempt_id}")
+    explanations = get_explanations(conn, [str(r["question_id"]) for r in rows], provider, fallback)
     return [
         _build_solution_entry(
             conn, str(r["question_id"]), r["type"], r["topic"], r["text"], r["payload"],
             r["user_answer"], r["is_correct"], provider, fallback, row_results=None,
+            explanation=explanations[str(r["question_id"])],
         )
         for r in rows
     ]
@@ -371,6 +375,7 @@ def solutions_from_answers(
         cur.execute("SELECT question_id, type, topic, chapter, text, payload FROM questions WHERE question_id = ANY(%s)", (question_ids,))
         rows = {str(r["question_id"]): r for r in cur.fetchall()}
 
+    explanations = get_explanations(conn, question_ids, provider, fallback)
     entries = []
     for qid, user_answer in answers.items():
         row = rows[qid]
@@ -380,6 +385,7 @@ def solutions_from_answers(
             _build_solution_entry(
                 conn, qid, row["type"], row["topic"], row["text"], row["payload"],
                 user_answer, graded.is_correct, provider, fallback, row_results=row_results,
+                explanation=explanations[qid],
             )
         )
     return entries

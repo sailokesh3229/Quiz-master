@@ -23,13 +23,14 @@ from __future__ import annotations
 import os
 import random
 from pathlib import Path
+from functools import lru_cache
 from typing import Callable
 
 import chromadb
 import psycopg
 
 from app.background import generate_parallel
-from app.dedup import intake_question
+from app.dedup import intake_question, question_identity_text
 from app.llm_client import Provider, generate_with_reliability
 from app.prompts import PROMPT_BUILDERS, SchemaValidationError, parse_and_validate
 from app.scope_resolution import AllocationLine
@@ -39,6 +40,7 @@ _DEFAULT_CHROMA_PATH = Path(__file__).resolve().parent.parent.parent / "ingestio
 CHROMA_PATH = Path(os.environ.get("CHROMA_DB_PATH", str(_DEFAULT_CHROMA_PATH)))
 
 
+@lru_cache(maxsize=512)
 def get_grounding_chunks(class_: str, subject: str, topic: str, n: int = 5) -> list[dict]:
     """Metadata-filtered retrieval from Section 1's Chroma store (PLAN.md
     section 2 Step C, item 1)."""
@@ -157,7 +159,7 @@ def make_generate_fn(
                 payload = result_data["payload"]
                 question_text = payload.question
                 with stage("question.embed"):
-                    embedding = embed_model.encode(question_text).tolist()
+                    embedding = embed_model.encode(question_identity_text(line.question_type, question_text, payload.model_dump())).tolist()
                 intake_result = intake_question(
                     conn,
                     class_=class_,

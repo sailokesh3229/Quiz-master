@@ -66,11 +66,13 @@ def _all_metadatas(where: dict | None) -> list[dict]:
     return res["metadatas"]
 
 
+@lru_cache(maxsize=32)
 def list_subjects(class_: str) -> list[str]:
     metas = _all_metadatas({"class": class_})
     return sorted({m["subject"] for m in metas})
 
 
+@lru_cache(maxsize=128)
 def list_chapters(class_: str, subject: str) -> list[ChapterInfo]:
     metas = _all_metadatas({"$and": [{"class": class_}, {"subject": subject}]})
     by_chapter: dict[str, str | None] = {}
@@ -82,6 +84,7 @@ def list_chapters(class_: str, subject: str) -> list[ChapterInfo]:
     return chapters
 
 
+@lru_cache(maxsize=1024)
 def list_topics(class_: str, subject: str, chapter: str) -> list[TopicInfo]:
     metas = _all_metadatas({"$and": [{"class": class_}, {"subject": subject}, {"chapter": chapter}]})
     by_topic: dict[str, str | None] = {}

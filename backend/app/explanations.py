@@ -15,16 +15,20 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from functools import lru_cache
 
 import chromadb
 import psycopg
 
 from app.llm_client import Provider, generate_with_reliability
+from app.background import generate_parallel
+from app.diagnostics import stage, logger
 
 _DEFAULT_CHROMA_PATH = Path(__file__).resolve().parent.parent.parent / "ingestion" / "chroma_db"
 CHROMA_PATH = Path(os.environ.get("CHROMA_DB_PATH", str(_DEFAULT_CHROMA_PATH)))
 
 
+@lru_cache(maxsize=1024)
 def _get_chunk_text(chunk_id: str) -> str | None:
     client = chromadb.PersistentClient(path=str(CHROMA_PATH))
     coll = client.get_collection("chunks")
@@ -117,3 +121,47 @@ def get_or_generate_explanation(
     # never commit internally either). Worst case on a request that later
     # fails: the explanation is regenerated next time, not corrupted.
     return explanation
+
+
+def get_explanations(conn, question_ids, primary, fallback=None) -> dict[str, str]:
+    """Bulk cache read; only provider calls run in workers. DB stays on caller."""
+    ids = list(dict.fromkeys(question_ids))
+    if not ids:
+        return {}
+    with conn.cursor() as cur:
+        cur.execute("SELECT question_id, text, type, payload, source_chunk_id, class, subject, chapter, topic, explanation "
+                    "FROM questions WHERE question_id = ANY(%s)", (ids,))
+        rows = cur.fetchall()
+    if len(rows) != len(ids):
+        raise ValueError("unknown question_id in solutions request")
+    result = {str(r["question_id"]): r["explanation"] for r in rows if r["explanation"]}
+    pending, chunks, styles = [], {}, {}
+    for row in rows:
+        if row["explanation"]:
+            continue
+        chunk_id = row["source_chunk_id"]
+        if chunk_id not in chunks:
+            chunks[chunk_id] = _get_chunk_text(chunk_id) or ""
+        scope = (row["class"], row["subject"], row["chapter"], row["topic"])
+        if scope not in styles:
+            styles[scope] = _get_style_reference(conn, *scope)
+        pending.append((str(row["question_id"]), _build_explanation_prompt(
+            row["text"], row["type"], row["payload"], chunks[chunk_id], styles[scope])))
+    logger.info("solutions cache_hits=%d missing=%d", len(result), len(pending))
+    if not pending:
+        return result
+    with stage("solutions.generate_parallel"):
+        outcome = generate_parallel(pending, lambda item: generate_with_reliability(
+            item[1], primary=primary, fallback=fallback, max_tokens=400, max_retries=1).strip())
+    if outcome.errors:
+        raise outcome.errors[min(outcome.errors)]
+    updates = []
+    for index, explanation in outcome.results.items():
+        if not explanation:
+            raise ValueError("empty explanation returned by provider")
+        qid = pending[index][0]
+        result[qid] = explanation
+        updates.append((explanation, qid))
+    with conn.cursor() as cur:
+        cur.executemany("UPDATE questions SET explanation=%s WHERE question_id=%s", updates)
+    return result
