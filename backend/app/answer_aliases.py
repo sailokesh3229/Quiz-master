@@ -27,6 +27,16 @@ CHEMICAL_ALIASES = {
     "zinc sulfate": ("ZnSO4", "zinc sulphate"),
 }
 
+# Explicitly reviewed equivalents only. Related concepts are not synonyms.
+TERM_GROUPS = (
+    ("large", "big"),
+    ("deoxyribonucleic acid", "DNA"),
+    ("hydrogen gas", "H2 gas"),
+    ("photosynthesis", "the process of photosynthesis"),
+    ("atom", "atoms"),
+    ("molecule", "molecules"),
+)
+
 
 def normalize_answer(value: str) -> str:
     return re.sub(r"\s+", " ", unicodedata.normalize("NFKC", value).strip())
@@ -65,7 +75,8 @@ def accepted_answers_for(payload: dict) -> list[str]:
         # Reviewed registry overrides model-proposed chemical alternatives.
         candidates = [identity, *CHEMICAL_ALIASES[identity]]
     else:
-        candidates = payload.get("accepted_answers") or []
+        candidates = next((group for group in TERM_GROUPS
+                           if answer.casefold() in [v.casefold() for v in group]), ())
     result = []
     for value in candidates:
         if not isinstance(value, str):

@@ -64,7 +64,7 @@ def test_matching_question_reaches_bank_intake(monkeypatch):
     provider = SimpleNamespace(generate=lambda *args, **kwargs: json.dumps({
         "left_items": ["a", "b", "c"], "right_items": ["x", "y", "z"],
         "pairs": {"a": "x", "b": "y", "c": "z"}}))
-    model = SimpleNamespace(encode=lambda text: np.ones(384))
+    model = SimpleNamespace(encode=lambda texts: np.ones((len(texts), 384)))
     generate = generation.make_generate_fn(None, "10", "Science", "chapter", provider, None, model)
     result = generate(AllocationLine("topic", "easy", "matching", 1), 1)
     assert result[0]["question_id"] == "matching-one"

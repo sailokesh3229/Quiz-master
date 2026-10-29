@@ -1,0 +1,202 @@
+[
+  {
+    "page": 3,
+    "before": "Mg + O  →  MgO(1.2)\n2",
+    "after": "Mg + O2  →  MgO(1.2)"
+  },
+  {
+    "page": 3,
+    "before": "Zn + HSO → ZnSO + H(1.3)\n2442",
+    "after": "Zn + H2SO4 → ZnSO4 + H2(1.3)"
+  },
+  {
+    "page": 3,
+    "before": "Fe + HO → FeO + H(1.4)\n2342",
+    "after": "Fe + H2O → Fe3O4 + H2(1.4)"
+  },
+  {
+    "page": 4,
+    "before": "Fe   +   HO   →   FeO   +   H(1.5)\n2342",
+    "after": "Fe   +   H2O   →   Fe3O4   +   H2(1.5)"
+  },
+  {
+    "page": 4,
+    "before": "‘4’ as 4 HO and not HO or (HO). Now the partly balanced equation\n22424",
+    "after": "‘4’ as 4 H2O and not H2O4 or (H2O)4. Now the partly balanced equation"
+  },
+  {
+    "page": 4,
+    "before": "Fe   +   4 HO   →   FeO   +   H\n2342",
+    "after": "Fe   +   4 H2O   →   Fe3O4   +   H2"
+  },
+  {
+    "page": 4,
+    "before": "number of atoms. Using these criteria, we select FeO and the element\n34",
+    "after": "number of atoms. Using these criteria, we select Fe3O4 and the element"
+  },
+  {
+    "page": 4,
+    "before": "Fe   +   4   HO   →   FeO   +   4 H\n2342",
+    "after": "Fe   +   4   H2O   →   Fe3O4   +   4 H2"
+  },
+  {
+    "page": 4,
+    "before": "(i)Initial1 (in HO)4 (in FeO)\n234",
+    "after": "(i)Initial1 (in H2O)4 (in Fe3O4)"
+  },
+  {
+    "page": 4,
+    "before": "(i)Initial8 (in 4 HO)2 (in H)\n22",
+    "after": "(i)Initial8 (in 4 H2O)2 (in H2)"
+  },
+  {
+    "page": 5,
+    "before": "3   Fe   +   4   HO   →   FeO   +   4   H(1.8)\n2342",
+    "after": "3   Fe   +   4   H2O   →   Fe3O4   +   4   H2(1.8)"
+  },
+  {
+    "page": 5,
+    "before": "3Fe + 4HO → FeO + 4H\n2342",
+    "after": "3Fe + 4H2O → Fe3O4 + 4H2"
+  },
+  {
+    "page": 5,
+    "before": "3Fe(s) + 4HO(g)  → FeO(s) + 4H(g)(1.10)\n2342\nNote that the symbol (g) is used with HO to indicate that in this\n2",
+    "after": "3Fe(s) + 4H2O(g)  → Fe3O4(s) + 4H2(g)(1.10)\nNote that the symbol (g) is used with H2O to indicate that in this"
+  },
+  {
+    "page": 5,
+    "before": "CO(g) + 2H (g)340atm→CH OH(l)(1.11)\n23",
+    "after": "CO(g) + 2H 2(g)340atm→CH 3OH(l)(1.11)"
+  },
+  {
+    "page": 5,
+    "before": "(i)Initial1 (in Fe)3 (in FeO)\n34",
+    "after": "(i)Initial1 (in Fe)3 (in Fe3O4)"
+  },
+  {
+    "page": 6,
+    "before": "CaO(s)+HO(l)  → Ca(OH)(aq)    +   Heat(1.13)\n22",
+    "after": "CaO(s)+H2O(l)  → Ca(OH)2(aq)    +   Heat(1.13)"
+  },
+  {
+    "page": 7,
+    "before": "C(s) + O(g)  → CO(g)(1.15)\n22\n(ii)Formation of water from H(g) and O(g)\n22\n2H(g) + O(g) → 2HO(l)(1.16)\n222",
+    "after": "C(s) + O2(g)  → CO2(g)(1.15)\n(ii)Formation of water from H2(g) and O2(g)\n2H2(g) + O2(g) → 2H2O(l)(1.16)"
+  },
+  {
+    "page": 7,
+    "before": "CH(g) + 2O (g) → CO (g) + 2HO (g)(1.17)\n4222",
+    "after": "CH4(g) + 2O2 (g) → CO2 (g) + 2H2O (g)(1.17)"
+  },
+  {
+    "page": 7,
+    "before": "CHO(aq) + 6O(aq) → 6CO(aq) + 6HO(l) + energy(1.18)\n6126222",
+    "after": "C6H12O6(aq) + 6O2(aq) → 6CO2(aq) + 6H2O(l) + energy(1.18)"
+  },
+  {
+    "page": 7,
+    "before": "that the chemical formula for marble is also CaCO.\n3\nCa(OH)(aq) + CO(g)→CaCO(s) + HO(l)(1.14)\n2232",
+    "after": "that the chemical formula for marble is also CaCO3.\nCa(OH)2(aq) + CO2(g)→CaCO3(s) + H2O(l)(1.14)"
+  },
+  {
+    "page": 8,
+    "before": "These fumes are of nitrogen dioxide (NO). The\n2",
+    "after": "These fumes are of nitrogen dioxide (NO2). The"
+  },
+  {
+    "page": 8,
+    "before": "2FeSO(s) Heat→ FeO(s)  +  SO(g)  + SO(g)(1.19)\n42323",
+    "after": "2FeSO4(s) Heat→ Fe2O3(s)  +  SO2(g)  + SO3(g)(1.19)"
+  },
+  {
+    "page": 8,
+    "before": "sulphate crystals (FeSO. 7HO) lose water when heated and the colour\n42\nof the crystals changes. It then decomposes to ferric oxide (FeO),\n23\nsulphur dioxide (SO) and sulphur trioxide (SO). Ferric oxide is a solid,\n23\nwhile SO and SO are gases.\n23",
+    "after": "sulphate crystals (FeSO4. 7H2O) lose water when heated and the colour\nof the crystals changes. It then decomposes to ferric oxide (Fe2O3),\nsulphur dioxide (SO2) and sulphur trioxide (SO3). Ferric oxide is a solid,\nwhile SO2 and SO3 are gases."
+  },
+  {
+    "page": 8,
+    "before": "CaCO(s) Heat→ CaO(s)    +   CO(g)(1.20)\n32",
+    "after": "CaCO3(s) Heat→ CaO(s)    +   CO2(g)(1.20)"
+  },
+  {
+    "page": 9,
+    "before": "2AgCl(s) Sunlight→2Ag(s) + Cl(g)(1.22)\n2",
+    "after": "2AgCl(s) Sunlight→2Ag(s) + Cl2(g)(1.22)"
+  },
+  {
+    "page": 9,
+    "before": "2Pb(NO)(s)Heat→2PbO(s)+4NO(g)  +  O(g)(1.21)\n3222",
+    "after": "2Pb(NO3)2(s)Heat→2PbO(s)+4NO2(g)  +  O2(g)(1.21)"
+  },
+  {
+    "page": 10,
+    "before": "2AgBr(s)Sunlight→2Ag(s) + Br(g)(1.23)\n2",
+    "after": "2AgBr(s)Sunlight→2Ag(s) + Br2(g)(1.23)"
+  },
+  {
+    "page": 11,
+    "before": "Fe(s) + CuSO(aq) →FeSO(aq)    +   Cu(s)(1.24)\n44",
+    "after": "Fe(s) + CuSO4(aq) →FeSO4(aq)    +   Cu(s)(1.24)"
+  },
+  {
+    "page": 11,
+    "before": "Zn(s) + CuSO(aq)  →ZnSO(aq)   +     Cu(s)(1.25)\n44",
+    "after": "Zn(s) + CuSO4(aq)  →ZnSO4(aq)   +     Cu(s)(1.25)"
+  },
+  {
+    "page": 11,
+    "before": "Pb(s) + CuCl(aq)  →PbCl(aq)     +     Cu(s)(1.26)\n22",
+    "after": "Pb(s) + CuCl2(aq)  →PbCl2(aq)     +     Cu(s)(1.26)"
+  },
+  {
+    "page": 11,
+    "before": "NaSO(aq) + BaCl(aq) → BaSO(s) + 2NaCl(aq)(1.27)\n2424",
+    "after": "Na2SO4(aq) + BaCl2(aq) → BaSO4(s) + 2NaCl(aq)(1.27)"
+  },
+  {
+    "page": 12,
+    "before": "2Cu + O  Heat→2CuO(1.28)\n2",
+    "after": "2Cu + O2  Heat→2CuO(1.28)"
+  },
+  {
+    "page": 12,
+    "before": "CuO +HHeat→Cu+H O(1.29)\n22",
+    "after": "CuO +H2Heat→Cu+H 2O(1.29)"
+  },
+  {
+    "page": 12,
+    "before": "MnO+4HCl→MnCl+2H O+Cl(1.32)\n2222",
+    "after": "MnO2+4HCl→MnCl2+2H 2O+Cl2(1.32)"
+  },
+  {
+    "page": 12,
+    "before": "What causes this? The  white precipitate of BaSOis formed by the\n4",
+    "after": "What causes this? The  white precipitate of BaSO4 is formed by the"
+  },
+  {
+    "page": 13,
+    "before": "In reaction (1.32) HCl is oxidised to Cl whereas MnO is reduced to MnCl.\n222",
+    "after": "In reaction (1.32) HCl is oxidised to Cl2 whereas MnO2 is reduced to MnCl2."
+  },
+  {
+    "page": 13,
+    "before": "(i) 4Na(s) + O(g) → 2NaO(s)\n22\n(ii) CuO(s) + H(g) → Cu(s) + HO(l)\n22",
+    "after": "(i) 4Na(s) + O2(g) → 2Na2O(s)\n(ii) CuO(s) + H2(g) → Cu(s) + H2O(l)"
+  },
+  {
+    "page": 14,
+    "before": "2PbO(s) + C(s) → 2Pb(s) + CO(g)\n2",
+    "after": "2PbO(s) + C(s) → 2Pb(s) + CO2(g)"
+  },
+  {
+    "page": 14,
+    "before": "2.FeO + 2Al → AlO + 2Fe\n2323",
+    "after": "2.Fe2O3 + 2Al → Al2O3 + 2Fe"
+  },
+  {
+    "page": 15,
+    "before": "(a)HNO+Ca(OH) → Ca(NO) + HO\n3  2322\n(b)NaOH + HSO → NaSO + HO\n24242\n(c)NaCl + AgNO → AgCl + NaNO\n33\n(d)BaCl + HSO → BaSO + HCl\n2244",
+    "after": "(a)HNO3 + Ca(OH)2 → Ca(NO3)2 + H2O\n(b)NaOH + H2SO4 → Na2SO4 + H2O\n(c)NaCl + AgNO3 → AgCl + NaNO3\n(d)BaCl2 + H2SO4 → BaSO4 + HCl"
+  }
+]

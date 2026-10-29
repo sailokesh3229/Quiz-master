@@ -19,6 +19,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import psycopg
+from app.source_quality import REPAIRED_CHUNK_IDS, SOURCE_REVISION
 
 
 @dataclass
@@ -58,6 +59,8 @@ _QUERY = """
           AND q.topic = %(topic)s
           AND q.difficulty = %(difficulty)s
           AND q.type = %(question_type)s
+          AND (q.source_chunk_id != ALL(%(repaired_chunks)s::text[])
+               OR q.payload->>'source_revision' = %(source_revision)s)
           AND (q.type <> 'matching' OR (
               jsonb_array_length(q.payload->'left_items') =
                   (SELECT COUNT(DISTINCT value) FROM jsonb_array_elements_text(q.payload->'left_items'))
@@ -101,6 +104,8 @@ def lookup_bank(
                 "user_id": user_id,
                 "count": count,
                 "exclude_clusters": exclude_cluster_ids or [],
+                "repaired_chunks": list(REPAIRED_CHUNK_IDS),
+                "source_revision": SOURCE_REVISION,
             },
         )
         rows = cur.fetchall()

@@ -487,6 +487,29 @@ def _reconstruct_block_lines(chars: list[dict]) -> list[dict]:
             rows.append([c])
     rows = [_dedup_row(row) for row in rows]
 
+    # Small lowered digits belong to the preceding formula, not a new text
+    # line. Preserve their x position so H + subscript 2 + O becomes H2O.
+    formula_rows = []
+    for row in rows:
+        base = formula_rows[-1] if formula_rows else []
+        digits = [c for c in row if not c["c"].isspace()]
+        if base and digits and all(c["c"].isdigit() for c in digits):
+            base_size = max(c["size"] for c in base)
+            # Mixed superscript charges need a richer math representation;
+            # do not flatten SO4(2-) into the different-looking SO24-.
+            has_raised_digit = any(b["c"].isdigit() and b["size"] < base_size * 0.8 for b in base)
+            if not has_raised_digit and all(
+                c["size"] < base_size * 0.8
+                and any(b["c"].isalnum() or b["c"] == ")" for b in base
+                        if -0.6 <= c["x0"] - b["x1"] <= base_size * 0.4
+                        and b["y0"] < c["y0"] < b["y1"])
+                for c in digits
+            ):
+                formula_rows[-1] = _dedup_row(base + row)
+                continue
+        formula_rows.append(row)
+    rows = formula_rows
+
     merged_rows: list[list[dict]] = []
     i = 0
     while i < len(rows):
@@ -499,6 +522,7 @@ def _reconstruct_block_lines(chars: list[dict]) -> list[dict]:
             y_gap = next_row[0]["y0"] - row[-1]["y0"]
             if (
                 _looks_like_dropcap_initials_row(row_text)
+                and any(c["c"].isalpha() for c in next_row)
                 and row_size > next_size * 1.15
                 and 0 <= y_gap <= 8
             ):

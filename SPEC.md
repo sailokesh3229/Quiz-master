@@ -254,8 +254,8 @@ lands on a main page from which they start a quiz.
   - Numeric answers: exact match after normalizing formatting (e.g., strip
     commas/units). No tolerance range in v1.
   - Text answers (updated 2026-10-29): normalize Unicode and whitespace,
-    then check the canonical answer and per-question `accepted_answers`
-    before using semantic similarity as a fallback for ordinary wording.
+    then check the canonical answer and reviewed term/formula equivalents.
+    Unreviewed model aliases and semantic similarity cannot authorize credit.
     Store alternatives in the existing question JSON payload. Generation
     must propose only source-supported equivalents, not related concepts;
     rewrite questions with ambiguous blanks. Alternatives must be short,
@@ -279,10 +279,9 @@ lands on a main page from which they start a quiz.
     The solutions screen shows the canonical answer and current accepted
     alternatives, including when the student used a correct alternative;
     it explains that saved scores remain unchanged when needed.
-  - The semantic threshold remains 0.75 for ordinary text fallback. No
-    extra LLM call is made at submission time. Structural validation and
-    source-grounding instructions are best-effort for generated text
-    synonyms; they do not prove factual equivalence for every alias.
+  - No embedding or LLM call is made at submission time. Related terms
+    such as atoms, molecules and particles must not be treated as equivalent.
+    Unknown synonyms require review before adding them to the registry.
   - **The answer must never be a symbolic/algebraic expression** (e.g.
     "side × side", "(side)^2", "l × b") — those have many equivalent valid
     phrasings that a synonym-matching mechanism cannot reliably normalize
@@ -570,5 +569,27 @@ the request atomically, without committing a partial explanation batch.
   adjustable).
 - **Synonym-matching mechanism for fill-in-blank text answers (resolved
   2026-10-29):** canonical/accepted answers first, a reviewed chemical
-  equivalence registry, then embedding similarity for ordinary text only.
+  equivalence registry and reviewed ordinary-term groups; no embedding fallback.
   No extra LLM grading call. See section 8 and PLAN.md section 12.
+
+
+### 2026-10-29 source quality and progressive solutions
+
+- The student solutions page requests a cache-only review first. Correct answers
+  and saved verdicts appear without waiting for generation. Only the selected
+  question requests a missing explanation; failure is isolated to that question
+  with a Retry control. Cached explanations are reused. The legacy bulk API
+  remains supported. Attempt ownership and question membership remain required.
+- Submission and requiz review do not load the embedding model. Generation
+  embeds successful candidates in a batch, internally capped at four by ONNX.
+- Grounding retrieval includes the chapter to prevent same-named topic leakage.
+- Preserve lowered formula digits by PDF glyph geometry. Apply versioned exact
+  corrections to eight affected class 10 Science chapter-one corpus chunks.
+  Do not globally replace valid formulas such as FeO. Older bank rows from these
+  chunks are excluded from new quizzes until reviewed; historical grades stay
+  unchanged and their explanation shows a source-quality notice. Newly generated
+  rows carry the repaired source revision. This is not universal fact validation.
+- Offline prefill generates review drafts across three difficulties and three
+  types. Only explicitly approved candidates with unchanged scoped sources can
+  be imported. No student quota or seen-history writes occur. It is a manual
+  operational workflow, not a scheduled worker or a guarantee of bank coverage.

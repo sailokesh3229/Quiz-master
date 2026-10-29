@@ -23,6 +23,7 @@ import psycopg
 from app.llm_client import Provider, generate_with_reliability
 from app.background import generate_parallel
 from app.diagnostics import stage, logger
+from app.source_quality import repair_source, REPAIRED_CHUNK_IDS, needs_review, REVIEW_NOTICE
 
 _DEFAULT_CHROMA_PATH = Path(__file__).resolve().parent.parent.parent / "ingestion" / "chroma_db"
 CHROMA_PATH = Path(os.environ.get("CHROMA_DB_PATH", str(_DEFAULT_CHROMA_PATH)))
@@ -34,7 +35,7 @@ def _get_chunk_text(chunk_id: str) -> str | None:
     coll = client.get_collection("chunks")
     res = coll.get(ids=[chunk_id], include=["documents"])
     docs = res["documents"]
-    return docs[0] if docs else None
+    return (repair_source(docs[0]) if chunk_id in REPAIRED_CHUNK_IDS else docs[0]) if docs else None
 
 
 def _get_style_reference(conn: psycopg.Connection, class_: str, subject: str, chapter: str, topic: str) -> dict | None:
@@ -105,6 +106,8 @@ def get_or_generate_explanation(
         row = cur.fetchone()
     if row is None:
         raise ValueError(f"unknown question_id: {question_id}")
+    if needs_review(row):
+        return REVIEW_NOTICE
     if row["explanation"]:
         return row["explanation"]
 
@@ -123,7 +126,7 @@ def get_or_generate_explanation(
     return explanation
 
 
-def get_explanations(conn, question_ids, primary, fallback=None) -> dict[str, str]:
+def get_explanations(conn, question_ids, primary, fallback=None, *, cache_only=False) -> dict[str, str]:
     """Bulk cache read; only provider calls run in workers. DB stays on caller."""
     ids = list(dict.fromkeys(question_ids))
     if not ids:
@@ -135,9 +138,12 @@ def get_explanations(conn, question_ids, primary, fallback=None) -> dict[str, st
     if len(rows) != len(ids):
         raise ValueError("unknown question_id in solutions request")
     result = {str(r["question_id"]): r["explanation"] for r in rows if r["explanation"]}
+    result.update({str(r["question_id"]): REVIEW_NOTICE for r in rows if needs_review(r)})
+    if cache_only:
+        return {qid: result.get(qid, "") for qid in ids}
     pending, chunks, styles = [], {}, {}
     for row in rows:
-        if row["explanation"]:
+        if row["explanation"] or needs_review(row):
             continue
         chunk_id = row["source_chunk_id"]
         if chunk_id not in chunks:

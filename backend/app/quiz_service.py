@@ -337,7 +337,8 @@ def _build_solution_entry(
     return entry
 
 
-def solutions_from_attempt(conn: psycopg.Connection, attempt_id: str, provider: Provider, fallback: Provider | None) -> list[dict]:
+def solutions_from_attempt(conn: psycopg.Connection, attempt_id: str, provider: Provider, fallback: Provider | None,
+                           *, include_explanations=True, question_id: str | None = None) -> list[dict]:
     """SPEC 8a: 'available any time after the quiz is submitted' — reads
     the persisted attempt rather than re-grading, so a real (non-requiz)
     attempt's solutions survive a page refresh or a later visit."""
@@ -353,7 +354,12 @@ def solutions_from_attempt(conn: psycopg.Connection, attempt_id: str, provider: 
         rows = cur.fetchall()
     if not rows:
         raise ValueError(f"unknown attempt_id: {attempt_id}")
-    explanations = get_explanations(conn, [str(r["question_id"]) for r in rows], provider, fallback)
+    if question_id is not None:
+        rows = [r for r in rows if str(r["question_id"]) == question_id]
+        if not rows:
+            raise ValueError("question does not belong to this attempt")
+    explanations = get_explanations(conn, [str(r["question_id"]) for r in rows], provider, fallback,
+                                    cache_only=not include_explanations)
     return [
         _build_solution_entry(
             conn, str(r["question_id"]), r["type"], r["topic"], r["text"], r["payload"],
@@ -365,7 +371,8 @@ def solutions_from_attempt(conn: psycopg.Connection, attempt_id: str, provider: 
 
 
 def solutions_from_answers(
-    conn: psycopg.Connection, answers: dict[str, object], provider: Provider, fallback: Provider | None, embed_model
+    conn: psycopg.Connection, answers: dict[str, object], provider: Provider, fallback: Provider | None, embed_model,
+    *, include_explanations=True,
 ) -> list[dict]:
     """A requiz replay never writes an attempt (SPEC section 11), so its
     solutions have nothing persisted to read back — graded fresh from the
@@ -375,7 +382,7 @@ def solutions_from_answers(
         cur.execute("SELECT question_id, type, topic, chapter, text, payload FROM questions WHERE question_id = ANY(%s)", (question_ids,))
         rows = {str(r["question_id"]): r for r in cur.fetchall()}
 
-    explanations = get_explanations(conn, question_ids, provider, fallback)
+    explanations = get_explanations(conn, question_ids, provider, fallback, cache_only=not include_explanations)
     entries = []
     for qid, user_answer in answers.items():
         row = rows[qid]

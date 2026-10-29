@@ -91,9 +91,10 @@ export function useApiClient() {
         call<CreateQuizResponse>("/api/quiz/create", { method: "POST", body: JSON.stringify(body) }),
       submitQuiz: (body: SubmitQuizRequestBody) =>
         call<SubmitQuizResponse>("/api/quiz/submit", { method: "POST", body: JSON.stringify(body) }),
-      getSolutionsByAttempt: (attemptId: string) => call<SolutionsResponse>(`/api/quiz/solutions/${attemptId}`),
-      getSolutionsFromAnswers: (answers: Record<string, UserAnswer>) =>
-        call<SolutionsResponse>("/api/quiz/solutions", { method: "POST", body: JSON.stringify({ answers }) }),
+      getSolutionsByAttempt: (attemptId: string, includeExplanations = true, questionId?: string) =>
+        call<SolutionsResponse>(`/api/quiz/solutions/${encodeURIComponent(attemptId)}?include_explanations=${includeExplanations}${questionId ? `&question_id=${encodeURIComponent(questionId)}` : ""}`),
+      getSolutionsFromAnswers: (answers: Record<string, UserAnswer>, includeExplanations = true) =>
+        call<SolutionsResponse>(`/api/quiz/solutions?include_explanations=${includeExplanations}`, { method: "POST", body: JSON.stringify({ answers }) }),
 
       getDashboard: () => call<Dashboard>("/api/performance/dashboard"),
     };

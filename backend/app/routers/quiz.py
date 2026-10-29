@@ -94,7 +94,6 @@ def post_submit_quiz(
     body: SubmitQuizIn,
     user_id: str = Depends(get_current_user_id),
     conn: psycopg.Connection = Depends(get_db),
-    embed_model=Depends(get_embed_model),
 ):
     request = SubmitQuizRequest(
         user_id=user_id, class_=body.class_, subject=body.subject,
@@ -102,7 +101,7 @@ def post_submit_quiz(
         difficulty=body.difficulty, is_requiz=body.is_requiz, answers=body.answers,
     )
     try:
-        result = submit_quiz_request(conn, request, embed_model)
+        result = submit_quiz_request(conn, request, None)
     except ValueError as e:
         raise HTTPException(400, str(e)) from e
 
@@ -116,6 +115,8 @@ def post_submit_quiz(
 @router.get("/solutions/{attempt_id}", response_model=SolutionsOut)
 def get_solutions_by_attempt(
     attempt_id: str,
+    include_explanations: bool = True,
+    question_id: str | None = None,
     user_id: str = Depends(get_current_user_id),
     conn: psycopg.Connection = Depends(get_db),
     primary=Depends(get_primary_provider),
@@ -130,7 +131,8 @@ def get_solutions_by_attempt(
         raise HTTPException(403, "this attempt does not belong to the current user")
 
     try:
-        entries = solutions_from_attempt(conn, attempt_id, primary, fallback)
+        entries = solutions_from_attempt(conn, attempt_id, primary, fallback,
+                                         include_explanations=include_explanations, question_id=question_id)
     except ValueError as e:
         raise HTTPException(404, str(e)) from e
     return SolutionsOut(solutions=[SolutionEntryOut(**e) for e in entries])
@@ -139,13 +141,14 @@ def get_solutions_by_attempt(
 @router.post("/solutions", response_model=SolutionsOut)
 def post_solutions_from_answers(
     body: SolutionsFromAnswersIn,
+    include_explanations: bool = True,
     conn: psycopg.Connection = Depends(get_db),
-    embed_model=Depends(get_embed_model),
     primary=Depends(get_primary_provider),
     fallback=Depends(get_fallback_provider),
 ):
     """For a requiz replay (SPEC section 11): nothing was persisted, so
     the client sends back the question_ids/answers it already holds from
     just taking the quiz."""
-    entries = solutions_from_answers(conn, body.answers, primary, fallback, embed_model)
+    entries = solutions_from_answers(conn, body.answers, primary, fallback, None,
+                                     include_explanations=include_explanations)
     return SolutionsOut(solutions=[SolutionEntryOut(**e) for e in entries])

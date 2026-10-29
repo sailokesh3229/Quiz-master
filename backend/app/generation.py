@@ -35,23 +35,28 @@ from app.llm_client import Provider, generate_with_reliability
 from app.prompts import PROMPT_BUILDERS, SchemaValidationError, parse_and_validate
 from app.scope_resolution import AllocationLine
 from app.diagnostics import stage
+from app.source_quality import repair_source, REPAIRED_CHUNK_IDS, SOURCE_REVISION
 
 _DEFAULT_CHROMA_PATH = Path(__file__).resolve().parent.parent.parent / "ingestion" / "chroma_db"
 CHROMA_PATH = Path(os.environ.get("CHROMA_DB_PATH", str(_DEFAULT_CHROMA_PATH)))
 
 
 @lru_cache(maxsize=512)
-def get_grounding_chunks(class_: str, subject: str, topic: str, n: int = 5) -> list[dict]:
+def get_grounding_chunks(class_: str, subject: str, topic: str, n: int = 5, chapter: str | None = None) -> list[dict]:
     """Metadata-filtered retrieval from Section 1's Chroma store (PLAN.md
     section 2 Step C, item 1)."""
     client = chromadb.PersistentClient(path=str(CHROMA_PATH))
     coll = client.get_collection("chunks")
+    filters = [{"class": class_}, {"subject": subject}, {"topic": topic}]
+    if chapter:
+        filters.append({"chapter": chapter})
     res = coll.get(
-        where={"$and": [{"class": class_}, {"subject": subject}, {"topic": topic}]},
+        where={"$and": filters},
         include=["documents", "metadatas"],
         limit=n,
     )
-    return [{"text": doc, "chunk_id": meta["chunk_id"]} for doc, meta in zip(res["documents"], res["metadatas"])]
+    return [{"text": repair_source(doc) if meta["chunk_id"] in REPAIRED_CHUNK_IDS else doc,
+             "chunk_id": meta["chunk_id"]} for doc, meta in zip(res["documents"], res["metadatas"])]
 
 
 def get_wording_style_example(conn: psycopg.Connection, class_: str, subject: str, chapter: str) -> str | None:
@@ -119,7 +124,7 @@ def make_generate_fn(
 
     def generate_fn(line: AllocationLine, count: int) -> list[dict]:
         with stage("textbook.retrieve"):
-            chunks = get_grounding_chunks(class_, subject, line.sub_unit)
+            chunks = get_grounding_chunks(class_, subject, line.sub_unit, 5, chapter)
         if not chunks:
             raise RuntimeError(f"no Section 1 chunks found for {class_}/{subject}/{line.sub_unit}")
 
@@ -151,15 +156,22 @@ def make_generate_fn(
                 # here multiplies timeouts and hides the original failure.
                 raise outcome.errors[min(outcome.errors)]
 
+            # Encode the successful batch once (the ONNX encoder internally
+            # caps inference batches at four to bound memory).
+            valid = [outcome.results[i] for i in sorted(outcome.results) if outcome.results[i] is not None]
+            if not valid:
+                continue
+            with stage("question.embed_batch"):
+                vectors = embed_model.encode([question_identity_text(
+                    line.question_type, item["payload"].question, item["payload"].model_dump()) for item in valid])
             # DB writes happen sequentially, back on the caller's connection.
-            for i in sorted(outcome.results.keys()):
-                result_data = outcome.results[i]
-                if result_data is None:
-                    continue
+            for result_data, vector in zip(valid, vectors):
                 payload = result_data["payload"]
                 question_text = payload.question
-                with stage("question.embed"):
-                    embedding = embed_model.encode(question_identity_text(line.question_type, question_text, payload.model_dump())).tolist()
+                bank_payload = payload.model_dump()
+                if result_data["chunk_id"] in REPAIRED_CHUNK_IDS:
+                    bank_payload["source_revision"] = SOURCE_REVISION
+                embedding = vector.tolist()
                 intake_result = intake_question(
                     conn,
                     class_=class_,
@@ -169,7 +181,7 @@ def make_generate_fn(
                     difficulty=line.difficulty,
                     question_type=line.question_type,
                     text=question_text,
-                    payload=payload.model_dump(),
+                    payload=bank_payload,
                     source_chunk_id=result_data["chunk_id"],
                     embedding=embedding,
                 )

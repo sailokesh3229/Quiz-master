@@ -1163,3 +1163,29 @@ schema validation alone is not a factual equivalence guarantee.
   pre-generation, scientific alias/content review and detailed server timings.
   These are not claimed as implemented by this change.
 
+
+
+## 14. Quality and latency follow-up — 2026-10-29
+
+Implemented (supersedes ordinary-alias/embedding fallback in section 12):
+- Restrict future grading and legacy alias display to reviewed equivalences.
+  Remove embedding inference from submit/requiz endpoints.
+- Cache-only solutions review plus per-question lazy explanations, preserving
+  saved grades and attempt ownership. Retry only the failed explanation.
+- Batch generation embeddings and scope textbook retrieval by chapter.
+- Repair subscript reconstruction using glyph coordinates; keep a versioned
+  exact replacement manifest for the deployed corpus and quarantine legacy
+  questions from the eight changed chunk IDs at bank selection. Preserve history.
+- Add `python -m app.prefill` (run inside backend) with required --class, --subject,
+  --chapter, --topic and --file; --per-cell 1 generates nine review candidates.
+  Review the source/question/answer and mark suitable candidates approved=true;
+  rerun the same scope with --import-reviewed to bank only approved candidates.
+  Import validates source hashes, payload schema and duplicate identity.
+
+Validation: focused backend regressions, frontend build/lint, synthetic glyph
+extraction tests and original class 10 Science PDF page 5 comparison.
+Operational follow-up: configured PostgreSQL was unavailable locally, so bank
+import and DB integration tests remain unverified. No new production latency
+claim: repeat controlled 5/15/25 trials when test quota and deployment allow.
+Cross-allocation scheduling, a durable prefill worker, DB pooling, and complete
+corpus factual review remain future work.

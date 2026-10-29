@@ -7,6 +7,28 @@ import "./SolutionsPage.css";
 
 type Filter = "all" | "right" | "wrong";
 
+function Explanation({ entry, attemptId }: { entry: SolutionEntry; attemptId?: string }) {
+  const api = useApiClient();
+  const { data, error, isFetching, refetch } = useQuery({
+    queryKey: ["explanation", attemptId, entry.question_id, entry.user_answer],
+    queryFn: () => attemptId
+      ? api.getSolutionsByAttempt(attemptId, true, entry.question_id)
+      : api.getSolutionsFromAnswers({ [entry.question_id]: entry.user_answer }),
+    enabled: !entry.explanation,
+    staleTime: Infinity,
+    retry: false,
+  });
+  const text = entry.explanation || data?.solutions[0]?.explanation;
+  return <div className="solutions-explanation-box" aria-live="polite">
+    <div className="solutions-explanation-label">SOLUTION</div>
+    <div className="solutions-explanation-text">
+      {text || (isFetching ? "Preparing this explanation…" : error
+        ? <>Couldn't load this explanation. <button onClick={() => void refetch()}>Retry</button></>
+        : "No explanation available.")}
+    </div>
+  </div>;
+}
+
 function OptionsReview({ entry }: { entry: SolutionEntry }) {
   const options = entry.correct_payload.options ?? [];
   const correctIndex = entry.correct_payload.correct_option_index;
@@ -78,9 +100,9 @@ export default function SolutionsPage() {
   const answersFromState = (location.state as { answers?: Record<string, UserAnswer> } | null)?.answers;
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["solutions", attemptId, answersFromState],
+    queryKey: ["solutions-review", attemptId, answersFromState],
     queryFn: () =>
-      attemptId ? api.getSolutionsByAttempt(attemptId) : api.getSolutionsFromAnswers(answersFromState ?? {}),
+      attemptId ? api.getSolutionsByAttempt(attemptId, false) : api.getSolutionsFromAnswers(answersFromState ?? {}, false),
     enabled: !!attemptId || !!answersFromState,
   });
 
@@ -95,6 +117,7 @@ export default function SolutionsPage() {
   if (error || !data) return <div className="solutions-shell">Couldn't load solutions.</div>;
 
   const solutions = data.solutions;
+  if (!solutions.length) return <div className="solutions-shell">No solutions available.</div>;
   const correctCount = solutions.filter((s) => s.is_correct).length;
   const filtered = solutions.filter((s) => (filter === "all" ? true : filter === "right" ? s.is_correct : !s.is_correct));
   const entry = filtered[Math.min(index, filtered.length - 1)] ?? solutions[0];
@@ -153,10 +176,7 @@ export default function SolutionsPage() {
           {entry.question_type === "fill_in_blank" && <FillInBlankReview entry={entry} />}
           {entry.question_type === "matching" && <MatchingReview entry={entry} />}
 
-          <div className="solutions-explanation-box">
-            <div className="solutions-explanation-label">SOLUTION</div>
-            <div className="solutions-explanation-text">{entry.explanation}</div>
-          </div>
+          <Explanation key={entry.question_id} entry={entry} attemptId={attemptId} />
 
           <div className="solutions-nav">
             <button disabled={index === 0} onClick={() => setIndex((i) => i - 1)} style={{ color: index === 0 ? "var(--color-text-disabled)" : "var(--color-text-soft)" }}>

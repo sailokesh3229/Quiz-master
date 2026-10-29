@@ -1,6 +1,6 @@
 """Section 2 Step E / SPEC.md section 8: per-question grading rules.
 
-Accepted-answer matching precedes embedding similarity. Reviewed chemical
+Accepted-answer matching uses reviewed equivalents only. Reviewed chemical
 aliases work for older bank payloads too, without regrading past attempts.
 """
 
@@ -10,12 +10,6 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 from app.answer_aliases import accepted_answers_for, chemical_identity, looks_like_formula, normalize_answer
-
-# Cosine similarity threshold for accepting a fill-in-blank text answer as
-# a synonym/close phrasing of the correct term (SPEC section 8). Starting
-# conservative, same "tune empirically" stance as the duplicate-detection
-# threshold (section 5) — not yet tuned against real student answers.
-SYNONYM_SIMILARITY_THRESHOLD = 0.75
 
 _NUMERIC_RE = re.compile(r"^-?\d+(\.\d+)?$")
 
@@ -41,7 +35,7 @@ def grade_mcq(payload: dict, user_answer: Any) -> bool:
 def grade_fill_in_blank(payload: dict, user_answer: str, embed_model=None) -> bool:
     """payload: {"answer": str}. SPEC section 8:
     - numeric answers: exact match after normalizing (strip commas/units), no tolerance.
-    - text answers: accept a reasonable synonym/close phrasing, not only exact match.
+    - text answers: exact normalized match or a reviewed equivalent.
     """
     correct = normalize_answer(payload["answer"])
     user_answer = normalize_answer(str(user_answer))
@@ -66,14 +60,9 @@ def grade_fill_in_blank(payload: dict, user_answer: str, embed_model=None) -> bo
     # A different formula is a different answer, even if its embedding is close.
     if looks_like_formula(correct) or looks_like_formula(user_answer) or chemical_identity(user_answer):
         return False
-    if embed_model is None:
-        return False
-
-    import numpy as np
-
-    a, b = embed_model.encode([str(user_answer), correct])
-    similarity = float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
-    return similarity >= SYNONYM_SIMILARITY_THRESHOLD
+    # Similarity measures relatedness, not factual equivalence (atoms/molecules).
+    # Keep embed_model in the signature for compatibility, but never use it to grade.
+    return False
 
 
 @dataclass
